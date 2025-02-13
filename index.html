@@ -9,6 +9,7 @@
             margin: 0;
             overflow: hidden;
             background-color: black;
+            font-family: Arial, sans-serif;
         }
         canvas {
             display: block;
@@ -16,9 +17,30 @@
             top: 0;
             left: 0;
         }
+        .text-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1;
+            color: white;
+        }
+        .text-input {
+            margin: 10px 0;
+            padding: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            outline: none;
+        }
     </style>
 </head>
 <body>
+    <div class="text-container">
+        <label for="text1">Linje 1:</label>
+        <input id="text1" class="text-input" type="text" value="Velkommen" />
+        <label for="text2">Linje 2:</label>
+        <input id="text2" class="text-input" type="text" value="til Nav Land" />
+    </div>
     <canvas id="bigbang"></canvas>
     <script>
         // Hent canvas og opprett kontekst
@@ -76,43 +98,23 @@
                     particle.draw();
                 }
             });
-            drawMovingBalloons(); // Tegn ballonger i samme animasjonsløp
+            drawText(); // Tegn teksten i animasjonsløp
             requestAnimationFrame(animateParticles);
         }
 
-        // Musens posisjon
-        const mouse = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-        };
+        // Funksjon for å tegne tekst på skjermen
+        function drawText() {
+            const text1 = document.getElementById("text1").value;
+            const text2 = document.getElementById("text2").value;
 
-        window.addEventListener("mousemove", (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-
-        // Ballonger som beveger seg med musen
-        function drawMovingBalloons() {
-            const balloonColors = ["rgba(255, 223, 0, 0.9)", "rgba(0, 255, 0, 0.9)", "rgba(0, 0, 255, 0.9)"];
-            const offsets = [
-                { x: -100, y: -100 }, // Venstre
-                { x: 100, y: -100 },  // Høyre
-                { x: 0, y: 100 },     // Nederst
-            ];
-
-            offsets.forEach((offset, index) => {
-                ctx.beginPath();
-                ctx.arc(mouse.x + offset.x, mouse.y + offset.y, 150, 0, Math.PI * 2); // Større ballong
-                ctx.fillStyle = balloonColors[index];
-                ctx.fill();
-            });
-
-            // Legg til teksten i midten av den største ballongen
-            ctx.fillStyle = "black";
-            ctx.font = "30px Arial";
+            ctx.fillStyle = "white";
+            ctx.font = "bold 50px Arial";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText("Velkommen til Nav Land", mouse.x, mouse.y);
+
+            // Tegn linje 1 og linje 2 på skjermen
+            ctx.fillText(text1, canvas.width / 2, canvas.height / 2 - 30);
+            ctx.fillText(text2, canvas.width / 2, canvas.height / 2 + 30);
         }
 
         // Start Big Bang og animasjon
