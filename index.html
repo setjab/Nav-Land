@@ -76,7 +76,7 @@
                     particle.draw();
                 }
             });
-            drawMovingSphere(); // Tegn sfæren i samme animasjonsløp
+            drawMovingBalloons(); // Tegn ballonger i samme animasjonsløp
             requestAnimationFrame(animateParticles);
         }
 
@@ -91,16 +91,25 @@
             mouse.y = e.clientY;
         });
 
-        // Sfæren som følger musen
-        function drawMovingSphere() {
-            ctx.beginPath();
-            ctx.arc(mouse.x, mouse.y, 50, 0, Math.PI * 2); // Sfære med radius 50
-            ctx.fillStyle = "rgba(255, 223, 0, 0.9)"; // Gulaktig farge
-            ctx.fill();
+        // Ballonger som beveger seg med musen
+        function drawMovingBalloons() {
+            const balloonColors = ["rgba(255, 223, 0, 0.9)", "rgba(0, 255, 0, 0.9)", "rgba(0, 0, 255, 0.9)"];
+            const offsets = [
+                { x: -100, y: -100 }, // Venstre
+                { x: 100, y: -100 },  // Høyre
+                { x: 0, y: 100 },     // Nederst
+            ];
 
-            // Legg til tekst inne i sfæren
+            offsets.forEach((offset, index) => {
+                ctx.beginPath();
+                ctx.arc(mouse.x + offset.x, mouse.y + offset.y, 150, 0, Math.PI * 2); // Større ballong
+                ctx.fillStyle = balloonColors[index];
+                ctx.fill();
+            });
+
+            // Legg til teksten i midten av den største ballongen
             ctx.fillStyle = "black";
-            ctx.font = "20px Arial";
+            ctx.font = "30px Arial";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText("Velkommen til Nav Land", mouse.x, mouse.y);
