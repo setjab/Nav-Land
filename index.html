@@ -19,110 +19,81 @@
     </style>
 </head>
 <body>
-    <canvas id="bigbang"></canvas>
-    <script>
-        // Hent canvas og opprett kontekst
-        const canvas = document.getElementById("bigbang");
-        const ctx = canvas.getContext("2d");
+    <canvas id="scene"></canvas>
+    <script type="module">
+        import * as THREE from "https://cdn.skypack.dev/three@0.152.0";
 
-        // Sett opp canvas dimensjoner
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("scene") });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        const particles = [];
-        const colors = ["red", "orange", "yellow", "green", "blue", "purple", "white"];
+        // Add a large sphere
+        const sphereGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const sphereMaterial = new THREE.MeshStandardMaterial({
+            color: 0x00ffcc,
+            emissive: 0x001111,
+            emissiveIntensity: 0.5,
+            wireframe: false,
+        });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(sphere);
 
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.radius = Math.random() * 4 + 2; // Varierende størrelse
-                this.color = color;
-                this.speedX = (Math.random() - 0.5) * 4; // Hastighet i x-retning
-                this.speedY = (Math.random() - 0.5) * 4; // Hastighet i y-retning
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.radius -= 0.02; // Krymper over tid
-                if (this.radius < 0) this.radius = 0; // Ikke negativ radius
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-            }
-        }
-
-        function createBigBang() {
-            for (let i = 0; i < 300; i++) {
-                const x = canvas.width / 2;
-                const y = canvas.height / 2;
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                particles.push(new Particle(x, y, color));
-            }
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Fjern tidligere rammer
-            particles.forEach((particle, index) => {
-                if (particle.radius <= 0) {
-                    particles[index] = new Particle(canvas.width / 2, canvas.height / 2, particle.color);
-                } else {
-                    particle.update();
-                    particle.draw();
-                }
+        // Add 3D Text inside the sphere
+        const loader = new THREE.FontLoader();
+        loader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
+            const textGeometry = new THREE.TextGeometry("Velkommen\nNav Land", {
+                font: font,
+                size: 0.7,
+                height: 0.3,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.03,
+                bevelSize: 0.02,
+                bevelSegments: 5,
             });
-            drawMovingBalloons(); // Tegn ballonger i samme animasjonsløp
-            requestAnimationFrame(animateParticles);
-        }
 
-        // Musens posisjon
-        const mouse = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-        };
-
-        window.addEventListener("mousemove", (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
+            const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            textMesh.position.set(-3, 0, 0); // Position text inside sphere
+            sphere.add(textMesh); // Attach text to sphere
         });
 
-        // Ballonger som beveger seg med musen
-        function drawMovingBalloons() {
-            const balloonColors = ["rgba(255, 223, 0, 0.9)", "rgba(0, 255, 0, 0.9)", "rgba(0, 0, 255, 0.9)"];
-            const offsets = [
-                { x: -100, y: -100 }, // Venstre
-                { x: 100, y: -100 },  // Høyre
-                { x: 0, y: 100 },     // Nederst
-            ];
+        // Add lights
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
 
-            offsets.forEach((offset, index) => {
-                ctx.beginPath();
-                ctx.arc(mouse.x + offset.x, mouse.y + offset.y, 150, 0, Math.PI * 2); // Større ballong
-                ctx.fillStyle = balloonColors[index];
-                ctx.fill();
-            });
+        const ambientLight = new THREE.AmbientLight(0x404040, 1); // Soft light
+        scene.add(ambientLight);
 
-            // Legg til teksten i midten av den største ballongen
-            ctx.fillStyle = "black";
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText("Velkommen til Nav Land", mouse.x, mouse.y);
-        }
+        // Orbital animation for the sphere
+        let angle = 0;
+        const radius = 10; // Distance from center for orbit
+        const animate = () => {
+            requestAnimationFrame(animate);
 
-        // Start Big Bang og animasjon
-        createBigBang();
-        animateParticles();
+            // Move sphere in a circular orbit
+            angle += 0.01;
+            sphere.position.x = Math.cos(angle) * radius;
+            sphere.position.z = Math.sin(angle) * radius;
 
-        // Juster canvas dimensjoner ved vindusstørrelse
+            // Rotate sphere to give a dynamic effect
+            sphere.rotation.y += 0.01;
+
+            renderer.render(scene, camera);
+        };
+
+        camera.position.z = 20; // Position the camera
+        animate();
+
+        // Resize event for responsiveness
         window.addEventListener("resize", () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
         });
     </script>
 </body>
