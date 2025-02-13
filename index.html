@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velkommen til Nav Land</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bigbang"></canvas>
+    <script>
+        // Hent canvas og opprett kontekst
+        const canvas = document.getElementById("bigbang");
+        const ctx = canvas.getContext("2d");
+
+        // Sett opp canvas dimensjoner
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ["red", "orange", "yellow", "green", "blue", "purple", "white"];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = Math.random() * 4 + 2; // Varierende størrelse
+                this.color = color;
+                this.speedX = (Math.random() - 0.5) * 4; // Hastighet i x-retning
+                this.speedY = (Math.random() - 0.5) * 4; // Hastighet i y-retning
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.radius -= 0.02; // Krymper over tid
+                if (this.radius < 0) this.radius = 0; // Ikke negativ radius
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function createBigBang() {
+            for (let i = 0; i < 300; i++) {
+                const x = canvas.width / 2;
+                const y = canvas.height / 2;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Fjern tidligere rammer
+            particles.forEach((particle, index) => {
+                if (particle.radius <= 0) {
+                    particles[index] = new Particle(canvas.width / 2, canvas.height / 2, particle.color);
+                } else {
+                    particle.update();
+                    particle.draw();
+                }
+            });
+            drawMovingSphere(); // Tegn sfæren i samme animasjonsløp
+            requestAnimationFrame(animateParticles);
+        }
+
+        // Musens posisjon
+        const mouse = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+        };
+
+        window.addEventListener("mousemove", (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // Sfæren som følger musen
+        function drawMovingSphere() {
+            ctx.beginPath();
+            ctx.arc(mouse.x, mouse.y, 50, 0, Math.PI * 2); // Sfære med radius 50
+            ctx.fillStyle = "rgba(255, 223, 0, 0.9)"; // Gulaktig farge
+            ctx.fill();
+
+            // Legg til tekst inne i sfæren
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("Velkommen til Nav Land", mouse.x, mouse.y);
+        }
+
+        // Start Big Bang og animasjon
+        createBigBang();
+        animateParticles();
+
+        // Juster canvas dimensjoner ved vindusstørrelse
+        window.addEventListener("resize", () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
